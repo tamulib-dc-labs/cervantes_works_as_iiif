@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "cervates-scraper"
+version = "0.1.0"
+description = ""
+authors = ["Mark Baggett <markpbaggett@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+iiif-prezi3 = "^2.0.1"
+requests = "^2.32.3"
+beautifulsoup4 = "^4.13.3"
+tqdm = "^4.67.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
