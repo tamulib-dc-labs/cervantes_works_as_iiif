@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 from tqdm import tqdm
-from iiif_prezi3 import Manifest, config, KeyValueString
+from iiif_prezi3 import Manifest, config, KeyValueString, CanvasRef
 import base64
 
 
@@ -99,7 +99,11 @@ class CervantesWork:
         for page in range(1, int(total_pages)):
             i += 1
             get_results = self.__get_page_content(
-                f"https://cervantes.library.tamu.edu/dqiDisplayInterface/{self.page_data['partial'].replace(f'page={total_pages}', f'page={i}')}"
+                f"https://cervantes.library.tamu.edu/dqiDisplayInterface/{
+                self.page_data['partial'].replace(
+                    f'page={total_pages}', f'page={i}'
+                )
+                }"
             )
             all_anchors = get_results.find_all("a")
             print(f"Getting items from page {page}")
@@ -134,6 +138,8 @@ class CervantesWork:
             label="Sample Manifest",
         )
         canvas_id = 0
+        ranges = []
+        range_id = 0
         for item in all_items:
             metadata = []
             for k, v in item['package']['metadata'].items():
@@ -149,13 +155,27 @@ class CervantesWork:
                 url=f"https://api-pre.library.tamu.edu/iiif/2/{item['package']['based_image']}",
                 metadata=metadata
             )
+            if item['package']['range'] not in ranges:
+                current_range = manifest.make_range(
+                    id=f"{base_url}/range/{range_id}",
+                    label=item['package']['range'],
+                )
+                range_canvas = CanvasRef(
+                    id=f"{base_url}/canvas/{canvas_id}",
+                    type="Canvas"
+                )
+                current_range.add_item(
+                    range_canvas,
+                )
+                ranges.append(item['package']['range'])
+                range_id += 1
             canvas_id += 1
+
         return manifest.json(indent=2)
 
     def write_manifest(self):
         with open("manifest.json", "w") as manifest_file:
             manifest_file.write(self.build_manifest())
-
 
 
 if __name__ == "__main__":
